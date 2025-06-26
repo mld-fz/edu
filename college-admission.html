@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高考志愿推荐系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36D399',
+                        neutral: '#3D4451',
+                        light: '#F8FAFC',
+                        dark: '#1E293B'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+            }
+            .bg-gradient-blue {
+                background: linear-gradient(135deg, #165DFF 0%, #0A3DA7 100%);
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .fade-in {
+                animation: fadeIn 0.5s ease-in-out;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-md sticky top-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-graduation-cap text-primary text-2xl"></i>
+                <span class="text-xl font-bold text-neutral">高考志愿推荐系统</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#home" class="text-neutral hover:text-primary transition-colors">首页</a>
+                <a href="#how-it-works" class="text-neutral hover:text-primary transition-colors">使用说明</a>
+                <a href="#data-sources" class="text-neutral hover:text-primary transition-colors">数据来源</a>
+                <a href="#contact" class="text-neutral hover:text-primary transition-colors">联系我们</a>
+            </div>
+            <button class="md:hidden text-neutral focus:outline-none">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 主容器 -->
+    <main class="container mx-auto px-4 py-12">
+        <!-- 首页内容 -->
+        <section id="home" class="mb-16">
+            <!-- 英雄区域 -->
+            <div class="bg-gradient-blue text-white py-16 md:py-24 rounded-2xl mb-12">
+                <div class="container mx-auto px-4 flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/2 mb-8 md:mb-0">
+                        <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold leading-tight text-shadow mb-4">
+                            科学填报志愿<br>开启美好未来
+                        </h1>
+                        <p class="text-lg md:text-xl opacity-90 mb-8">
+                            基于2025年高考一分一段表和2024年各高校录取分数线，为您提供精准的志愿填报建议
+                        </p>
+                        <a href="#calculator" class="bg-white text-primary px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+                            开始查询 <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                    <div class="md:w-1/2 flex justify-center">
+                        <img src="https://picsum.photos/id/3/600/400" alt="高考志愿填报指南" class="rounded-lg shadow-2xl max-w-full h-auto transform hover:scale-105 transition-transform duration-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分数查询计算器 -->
+            <div id="calculator" class="bg-white rounded-2xl shadow-xl p-8 transform transition-all duration-300 hover:shadow-2xl">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-neutral mb-2">分数查询与志愿推荐</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">输入您的高考分数和科类，我们将为您计算排名并推荐合适的院校志愿</p>
+                </div>
+                
+                <form id="score-form" class="max-w-2xl mx-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label for="score" class="block text-sm font-medium text-gray-700">高考分数</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fa fa-pencil"></i>
+                                </span>
+                                <input type="number" id="score" name="score" min="0" max="750" 
+                                    class="pl-10 block w-full rounded-lg border border-gray-300 py-3 px-4 focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    placeholder="请输入您的高考分数" required>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label for="subject" class="block text-sm font-medium text-gray-700">科类</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                    <i class="fa fa-book"></i>
+                                </span>
+                                <select id="subject" name="subject" 
+                                    class="pl-10 block w-full rounded-lg border border-gray-300 py-3 px-4 focus:ring-2 focus:ring-primary focus:border-primary transition-all appearance-none bg-white">
+                                    <option value="history">历史科目组</option>
+                                    <option value="physics">物理科目组</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">
+                                    <i class="fa fa-chevron-down text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 text-center">
+                        <button type="button" id="submit-btn" 
+                            class="bg-primary hover:bg-primary/90 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                            <i class="fa fa-search mr-2"></i> 查询结果
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- 结果展示区 -->
+            <div id="result-section" class="hidden mt-12">
+                <div class="bg-white rounded-2xl shadow-xl p-8 fade-in">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-neutral mb-2">查询结果</h2>
+                        <p class="text-gray-600 max-w-2xl mx-auto">基于您的分数和科类，为您推荐以下院校和志愿</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 mb-8">
+                        <h3 class="text-xl font-bold text-neutral mb-4 flex items-center">
+                            <i class="fa fa-trophy text-secondary mr-2"></i> 基本信息
+                        </h3>
+                        <div class="flex flex-col md:flex-row md:items-center gap-4">
+                            <div class="bg-white rounded-lg p-4 shadow-md flex-1">
+                                <p class="text-sm text-gray-600 mb-1">您的分数</p>
+                                <p class="text-2xl font-bold text-primary" id="result-score">-</p>
+                            </div>
+                            <div class="bg-white rounded-lg p-4 shadow-md flex-1">
+                                <p class="text-sm text-gray-600 mb-1">科类</p>
+                                <p class="text-2xl font-bold text-primary" id="result-subject">-</p>
+                            </div>
+                            <div class="bg-white rounded-lg p-4 shadow-md flex-1">
+                                <p class="text-sm text-gray-600 mb-1">全省排名</p>
+                                <p class="text-2xl font-bold text-primary" id="result-rank">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-neutral mb-4 flex items-center">
+                            <i class="fa fa-university text-secondary mr-2"></i> 推荐报考院校
+                        </h3>
+                        <div id="recommended-schools" class="space-y-4">
+                            <!-- 推荐院校将通过JavaScript动态生成 -->
+                            <div class="text-center py-8 text-gray-500">
+                                <i class="fa fa-spinner fa-spin text-2xl mb-3"></i>
+                                <p>正在为您计算推荐院校...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 text-center">
+                        <button id="back-btn" 
+                            class="inline-flex items-center px-6 py-3 bg-gray-200 text-neutral rounded-lg hover:bg-gray-300 transition-colors">
+                            <i class="fa fa-arrow-left mr-2"></i> 返回查询
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 使用说明 -->
+        <section id="how-it-works" class="mb-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-neutral mb-2">如何使用</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">简单三步，获取专业志愿填报建议</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+                    <div class="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa fa-pencil text-2xl text-primary"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-neutral mb-3">输入分数与科类</h3>
+                    <p class="text-gray-600">在查询表单中输入您的高考总分和选考科类（历史或物理）</p>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+                    <div class="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa fa-search text-2xl text-primary"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-neutral mb-3">获取排名结果</h3>
+                    <p class="text-gray-600">系统将根据2025年一分一段表计算您的全省排名</p>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+                    <div class="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa fa-list text-2xl text-primary"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-neutral mb-3">查看推荐志愿</h3>
+                    <p class="text-gray-600">基于2024年录取数据，为您推荐适合的院校和专业</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 数据来源 -->
+        <section id="data-sources" class="mb-16">
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-neutral mb-2">数据来源与说明</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">我们的数据基于官方公布的权威信息，经过科学分析和整理</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-gray-50 rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-neutral mb-4 flex items-center">
+                            <i class="fa fa-bar-chart text-primary mr-2"></i> 2025年一分一段表
+                        </h3>
+                        <p class="text-gray-600 mb-4">一分一段表是将全省同科类考生的档案分从高到低排列，再按每1分一段，统计“本段人数”；从本段向上一直到最高分段的所有“本段人数”相加，则为“累计人数”。</p>
+                        <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                            <li>包含历史科目组和物理科目组</li>
+                            <li>精确到每一分的累计人数</li>
+                            <li>数据来源：各省教育考试院官方公布</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6">
+                        <h3 class="text-xl font-bold text-neutral mb-4 flex items-center">
+                            <i class="fa fa-building text-primary mr-2"></i> 2024年高校录取数据
+                        </h3>
+                        <p class="text-gray-600 mb-4">录取数据包含了各高校在各省的最低录取分数线、招生计划和专业要求，是志愿填报的重要参考依据。</p>
+                        <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                            <li>覆盖全国大部分本科院校</li>
+                            <li>区分历史和物理科目组录取情况</li>
+                            <li>包含各专业具体录取分数线</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mt-8 bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-xl font-bold text-neutral mb-4 flex items-center">
+                        <i class="fa fa-info-circle text-primary mr-2"></i> 使用须知
+                    </h3>
+                    <p class="text-gray-600 mb-4">本系统提供的志愿推荐仅供参考，实际填报时请以各省教育考试院发布的正式文件和各高校招生章程为准。</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-start">
+                            <i class="fa fa-exclamation-triangle text-yellow-500 mt-1 mr-3"></i>
+                            <p class="text-gray-600">建议结合自身兴趣、专业倾向和未来职业规划综合考虑</p>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fa fa-exclamation-triangle text-yellow-500 mt-1 mr-3"></i>
+                            <p class="text-gray-600">关注各高校招生计划变化和专业选科要求</p>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fa fa-exclamation-triangle text-yellow-500 mt-1 mr-3"></i>
+                            <p class="text-gray-600">部分高校可能有特殊录取规则，请查阅官方信息</p>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fa fa-exclamation-triangle text-yellow-500 mt-1 mr-3"></i>
+                            <p class="text-gray-600">系统数据每年度更新，确保使用最新版本</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 联系我们 -->
+        <section id="contact" class="mb-16">
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-neutral mb-2">联系我们</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">如有任何疑问或建议，欢迎随时与我们联系</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <form class="space-y-4">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700">姓名</label>
+                                <input type="text" id="name" name="name" 
+                                    class="block w-full rounded-lg border border-gray-300 py-3 px-4 focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    placeholder="请输入您的姓名">
+                            </div>
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700">邮箱</label>
+                                <input type="email" id="email" name="email" 
+                                    class="block w-full rounded-lg border border-gray-300 py-3 px-4 focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    placeholder="请输入您的邮箱">
+                            </div>
+                            <div>
+                                <label for="message" class="block text-sm font-medium text-gray-700">留言内容</label>
+                                <textarea id="message" name="message" rows="4" 
+                                    class="block w-full rounded-lg border border-gray-300 py-3 px-4 focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                                    placeholder="请输入您的留言内容"></textarea>
+                            </div>
+                            <button type="submit" 
+                                class="bg-primary hover:bg-primary/90 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all">
+                                提交留言 <i class="fa fa-paper-plane ml-2"></i>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="flex flex-col justify-center">
+                        <div class="space-y-6">
+                            <div class="flex items-start">
+                                <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
+                                    <i class="fa fa-map-marker text-primary text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-neutral">办公地址</h4>
+                                    <p class="text-gray-600">北京市海淀区中关村南大街5号</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
+                                    <i class="fa fa-phone text-primary text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-neutral">联系电话</h4>
+                                    <p class="text-gray-600">400-123-4567</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
+                                    <i class="fa fa-envelope text-primary text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-neutral">电子邮箱</h4>
+                                    <p class="text-gray-600">support@gaokao-advisor.com</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
+                                    <i class="fa fa-clock-o text-primary text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-neutral">工作时间</h4>
+                                    <p class="text-gray-600">周一至周五: 9:00 - 18:00</p>
+                                    <p class="text-gray-600">周六至周日: 10:00 - 16:00</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8">
+                            <h4 class="text-lg font-semibold text-neutral mb-4">关注我们</h4>
+                            <div class="flex space-x-4">
+                                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+                                    <i class="fa fa-weixin"></i>
+                                </a>
+                                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+                                    <i class="fa fa-weibo"></i>
+                                </a>
+                                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+                                    <i class="fa fa-qq"></i>
+                                </a>
+                                <a href="#" class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+                                    <i class="fa fa-youtube-play"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fa fa-graduation-cap text-primary text-2xl"></i>
+                        <span class="text-xl font-bold">高考志愿推荐系统</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">为广大考生提供专业、科学的志愿填报指导，助力梦想起航</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa fa-weixin text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa fa-weibo text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fa fa-qq text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">快速链接</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#home" class="text-gray-400 hover:text-white transition-colors">首页</a></li>
+                        <li><a href="#how-it-works" class="text-gray-400 hover:text-white transition-colors">使用说明</a></li>
+                        <li><a href="#data-sources" class="text-gray-400 hover:text-white transition-colors">数据来源</a></li>
+                        <li><a href="#contact" class="text-gray-400 hover:text-white transition-colors">联系我们</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">热门工具</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">分数换算</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">院校对比</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">专业选择</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">录取概率预测</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">联系方式</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <i class="fa fa-map-marker text-primary mr-2"></i>
+                            <span class="text-gray-400">北京市海淀区中关村南大街5号</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-phone text-primary mr-2"></i>
+                            <span class="text-gray-400">400-123-4567</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-envelope text-primary mr-2"></i>
+                            <span class="text-gray-400">support@gaokao-advisor.com</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
+                <p>&copy; 2025 高考志愿推荐系统 版权所有 | 京ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // 模拟数据（实际应从后端获取）
+const scoreSection2025 = {
+    "history": {
+        671: 15, 670: 16, 669: 18, 668: 20, 667: 23, 666: 25, 665: 28, 664: 32,
+        663: 35, 662: 40, 661: 45, 660: 50, 659: 55, 658: 62, 657: 68, 656: 75,
+        655: 83, 654: 90, 653: 98, 652: 108, 651: 118, 650: 128,
+        649: 140, 648: 153, 647: 168, 646: 185, 645: 203,
+        644: 225, 643: 248, 642: 275, 641: 305, 640: 340,
+        639: 378, 638: 420, 637: 465, 636: 515, 635: 570,
+        634: 630, 633: 695, 632: 765, 631: 840, 630: 920,
+        629: 1005, 628: 1095, 627: 1190, 626: 1290, 625: 1395,
+        624: 1505, 623: 1620, 622: 1740, 621: 1865, 620: 1995,
+        619: 2130, 618: 2270, 617: 2415, 616: 2565, 615: 2720,
+        614: 2880, 613: 3045, 612: 3215, 611: 3390, 610: 3570,
+        609: 3755, 608: 3945, 607: 4140, 606: 4340, 605: 4545,
+        604: 4755, 603: 4970, 602: 5190, 601: 5415, 600: 5645,
+        599: 5880, 598: 6120, 597: 6365, 596: 6615, 595: 6870,
+        594: 7130, 593: 7395, 592: 7665, 591: 7940, 590: 8220,
+        589: 8505, 588: 8795, 587: 9090, 586: 9390, 585: 9695,
+        584: 10005, 583: 10320, 582: 10640, 581: 10965, 580: 11295,
+        579: 11630, 578: 11970, 577: 12315, 576: 12665, 575: 13020,
+        574: 13380, 573: 13745, 572: 14115, 571: 14490, 570: 14870,
+        569: 15255, 568: 15645, 567: 16040, 566: 16440, 565: 16845,
+        564: 17255, 563: 17670, 562: 18090, 561: 18515, 560: 18945,
+        559: 19380, 558: 19820, 557: 20265, 556: 20715, 555: 21170,
+        554: 21630, 553: 22095, 552: 22565, 551: 23040, 550: 23520,
+        549: 24005, 548: 24495, 547: 24990, 546: 25490, 545: 25995,
+        544: 26505, 543: 27020, 542: 27540, 541: 28065, 540: 28595,
+        539: 29130, 538: 29670, 537: 30215, 536: 30765, 535: 31320,
+        534: 31880, 533: 32445, 532: 33015, 531: 33590, 530: 34170,
+        529: 34755, 528: 35345, 527: 35940, 526: 36540, 525: 37145,
+        524: 37755, 523: 38370, 522: 38990, 521: 39615, 520: 40245,
+        519: 40880, 518: 41520, 517: 42165, 516: 42815, 515: 43470,
+        514: 44130, 513: 44795, 512: 45465, 511: 46140, 510: 46820,
+        509: 47505, 508: 48195, 507: 48890, 506: 49590, 505: 50295,
+        504: 51005, 503: 51720, 502: 52440, 501: 53165, 500: 53895,
+        499: 54630, 498: 55370, 497: 56115, 496: 56865, 495: 57620,
+        494: 58380, 493: 59145, 492: 59915, 491: 60690, 490: 61470,
+        489: 62255, 488: 63045, 487: 63840, 486: 64640, 485: 65445,
+        484: 66255, 483: 67070, 482: 67890, 481: 68715, 480: 69545,
+        479: 70380, 478: 71220, 477: 72065, 476: 72915, 475: 73770,
+        474: 74630, 473: 75495, 472: 76365, 471: 77240, 470: 78120,
+        469: 79005, 468: 79895, 467: 80790, 466: 81690, 465: 82595,
+        464: 83505, 463: 84420, 462: 85340, 461: 86265, 460: 87195,
+        459: 88130, 458: 89070, 457: 90015, 456: 90965, 455: 91920,
+        454: 92880, 453: 93845, 452: 94815, 451: 95790, 450: 96770,
+        449: 97755, 448: 98745, 447: 99740, 446: 100740, 445: 101745,
+        444: 102755, 443: 103770, 442: 104790, 441: 105815, 440: 106845,
+        439: 107880, 438: 108920, 437: 109965, 436: 111015, 435: 112070,
+        434: 113130, 433: 114195, 432: 115265, 431: 116340, 430: 117420,
+        429: 118505, 428: 119595, 427: 120690, 426: 121790, 425: 122895,
+        424: 124005, 423: 125120, 422: 126240, 421: 127365, 420: 128495,
+        419: 129630, 418: 130770, 417: 131915, 416: 133065, 415: 134220,
+        414: 135380, 413: 136545, 412: 137715, 411: 138890, 410: 140070,
+        409: 141255, 408: 142445, 407: 143640, 406: 144840, 405: 146045,
+        404: 147255, 403: 148470, 402: 149690, 401: 150915, 400: 152145
+    },
+    "physics": {
+        688: 58, 687: 63, 686: 73, 685: 83, 684: 93,
+        683: 105, 682: 118, 681: 132, 680: 145, 679: 160,
+        678: 175, 677: 190, 676: 210, 675: 230, 674: 250,
+        673: 275, 672: 300, 671: 330, 670: 360,
+        669: 395, 668: 435, 667: 480, 666: 530, 665: 585,
+        664: 645, 663: 710, 662: 780, 661: 855, 660: 935,
+        659: 1020, 658: 1110, 657: 1205, 656: 1305, 655: 1410,
+        654: 1520, 653: 1635, 652: 1755, 651: 1880, 650: 2010,
+        649: 2145, 648: 2285, 647: 2430, 646: 2580, 645: 2735,
+        644: 2895, 643: 3060, 642: 3230, 641: 3405, 640: 3585,
+        639: 3770, 638: 3965, 637: 4170, 636: 4385, 635: 4610,
+        634: 4845, 633: 5090, 632: 5345, 631: 5610, 630: 5885,
+        629: 6170, 628: 6465, 627: 6770, 626: 7085, 625: 7410,
+        624: 7745, 623: 8090, 622: 8445, 621: 8810, 620: 9185,
+        619: 9570, 618: 9965, 617: 10370, 616: 10785, 615: 11210,
+        614: 11645, 613: 12090, 612: 12545, 611: 13010, 610: 13485,
+        609: 13970, 608: 14465, 607: 14970, 606: 15485, 605: 16010,
+        604: 16545, 603: 17090, 602: 17645, 601: 18210, 600: 18785,
+        599: 19370, 598: 19965, 597: 20570, 596: 21185, 595: 21810,
+        594: 22445, 593: 23090, 592: 23745, 591: 24410, 590: 25085,
+        589: 25770, 588: 26465, 587: 27170, 586: 27885, 585: 28610,
+        584: 29345, 583: 30090, 582: 30845, 581: 31610, 580: 32385,
+        579: 33170, 578: 33965, 577: 34770, 576: 35585, 575: 36410,
+        574: 37245, 573: 38090, 572: 38945, 571: 39810, 570: 40685,
+        569: 41570, 568: 42465, 567: 43370, 566: 44285, 565: 45210,
+        564: 46145, 563: 47090, 562: 48045, 561: 49010, 560: 49985,
+        559: 50970, 558: 51965, 557: 52970, 556: 53985, 555: 55010,
+        554: 56045, 553: 57090, 552: 58145, 551: 59210, 550: 60285,
+        549: 61370, 548: 62465, 547: 63570, 546: 64685, 545: 65810,
+        544: 66945, 543: 68090, 542: 69245, 541: 70410, 540: 71585,
+        539: 72770, 538: 73965, 537: 75170, 536: 76385, 535: 77610,
+        534: 78845, 533: 80090, 532: 81345, 531: 82610, 530: 83885,
+        529: 85170, 528: 86465, 527: 87770, 526: 89085, 525: 90410,
+        524: 91745, 523: 93090, 522: 94445, 521: 95810, 520: 97185,
+        519: 98570, 518: 99965, 517: 101370, 516: 102785, 515: 104210,
+        514: 105645, 513: 107090, 512: 108545, 511: 110010, 510: 111485,
+        509: 112970, 508: 114465, 507: 115970, 506: 117485, 505: 119010,
+        504: 120545, 503: 122090, 502: 123645, 501: 125210, 500: 126785,
+        499: 128370, 498: 129965, 497: 131570, 496: 133185, 495: 134810,
+        494: 136445, 493: 138090, 492: 139745, 491: 141410, 490: 143085,
+        489: 144770, 488: 146465, 487: 148170, 486: 149885, 485: 151610,
+        484: 153345, 483: 155090, 482: 156845, 481: 158610, 480: 160385,
+        479: 162170, 478: 163965, 477: 165770, 476: 167585, 475: 169410,
+        474: 171245, 473: 173090, 472: 174945, 471: 176810, 470: 178685,
+        469: 180570, 468: 182465, 467: 184370, 466: 186285, 465: 188210,
+        464: 190145, 463: 192090, 462: 194045, 461: 196010, 460: 197985,
+        459: 199970, 458: 201965, 457: 203970, 456: 205985, 455: 208010,
+        454: 210045, 453: 212090, 452: 214145, 451: 216210, 450: 218285,
+        449: 220370, 448: 222465, 447: 224570, 446: 226685, 445: 228810,
+        444: 230945, 443: 233090, 442: 235245, 441: 237410, 440: 239585,
+        439: 241770, 438: 243965, 437: 246170, 436: 248385, 435: 250610,
+        434: 252845, 433: 255090, 432: 257345, 431: 259610, 430: 261885,
+        429: 264170, 428: 266465, 427: 268770, 426: 271085, 425: 273410,
+        424: 275745, 423: 278090, 422: 280445, 421: 282810, 420: 285185,
+        419: 287570, 418: 289965, 417: 292370, 416: 294785, 415: 297210,
+        414: 299645, 413: 302090, 412: 304545, 411: 307010, 410: 309485,
+        409: 311970, 408: 314465, 407: 316970, 406: 319485, 405: 322010,
+        404: 324545, 403: 327090, 402: 329645, 401: 332210, 400: 334785
+    }
+};
+
+     const schoolData2024 = [
+    // 物理科目组
+    {"school": "厦门大学", "subject": "physics", "min_score": 625, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/21/100/100"},
+    {"school": "厦门大学（面向厦门）", "subject": "physics", "min_score": 636, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/22/100/100"},
+    {"school": "厦门大学（面向漳州）", "subject": "physics", "min_score": 614, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/23/100/100"},
+    {"school": "厦门大学（医学类）", "subject": "physics", "min_score": 625, "major": "医学类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/24/100/100"},
+    {"school": "厦门大学（马来西亚分校）", "subject": "physics", "min_score": 591, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/25/100/100"},
+    {"school": "福建医科大学（临床医学5+3一体化）", "subject": "physics", "min_score": 631, "major": "临床医学5+3一体化", "province": "福建", "type": "医药", "logo": "https://picsum.photos/id/26/100/100"},
+    {"school": "福州大学", "subject": "physics", "min_score": 596, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/27/100/100"},
+    {"school": "福州大学（地矿专业）", "subject": "physics", "min_score": 585, "major": "地矿专业", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/28/100/100"},
+    {"school": "福州大学（闽台合作）", "subject": "physics", "min_score": 581, "major": "闽台合作", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/29/100/100"},
+    {"school": "福建师范大学", "subject": "physics", "min_score": 573, "major": "普通类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/30/100/100"},
+    {"school": "福建农林大学", "subject": "physics", "min_score": 555, "major": "普通类", "province": "福建", "type": "农林", "logo": "https://picsum.photos/id/31/100/100"},
+    {"school": "福建农林大学（闽台合作）", "subject": "physics", "min_score": 553, "major": "闽台合作", "province": "福建", "type": "农林", "logo": "https://picsum.photos/id/32/100/100"},
+    {"school": "福建理工大学", "subject": "physics", "min_score": 546, "major": "普通类", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/33/100/100"},
+    {"school": "闽江学院（新华都商学院）", "subject": "physics", "min_score": 539, "major": "新华都商学院", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/34/100/100"},
+    {"school": "福建医科大学", "subject": "physics", "min_score": 539, "major": "普通类", "province": "福建", "type": "医药", "logo": "https://picsum.photos/id/35/100/100"},
+    {"school": "福建理工大学（闽台合作）", "subject": "physics", "min_score": 538, "major": "闽台合作", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/36/100/100"},
+    {"school": "福建中医药大学", "subject": "physics", "min_score": 532, "major": "普通类", "province": "福建", "type": "医药", "logo": "https://picsum.photos/id/37/100/100"},
+    {"school": "闽江学院", "subject": "physics", "min_score": 530, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/38/100/100"},
+    {"school": "福建警察学院", "subject": "physics", "min_score": 529, "major": "普通类", "province": "福建", "type": "政法", "logo": "https://picsum.photos/id/39/100/100"},
+    {"school": "福建江夏学院", "subject": "physics", "min_score": 527, "major": "普通类", "province": "福建", "type": "财经", "logo": "https://picsum.photos/id/40/100/100"},
+    {"school": "福建师范大学（闽台合作）", "subject": "physics", "min_score": 526, "major": "闽台合作", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/41/100/100"},
+    {"school": "闽江学院（闽台合作）", "subject": "physics", "min_score": 517, "major": "闽台合作", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/42/100/100"},
+    {"school": "福建中医药大学（闽台合作）", "subject": "physics", "min_score": 517, "major": "闽台合作", "province": "福建", "type": "医药", "logo": "https://picsum.photos/id/43/100/100"},
+    {"school": "福建江夏学院（闽台合作）", "subject": "physics", "min_score": 516, "major": "闽台合作", "province": "福建", "type": "财经", "logo": "https://picsum.photos/id/44/100/100"},
+    {"school": "宁德师范学院", "subject": "physics", "min_score": 514, "major": "普通类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/45/100/100"},
+    {"school": "龙岩学院", "subject": "physics", "min_score": 514, "major": "普通类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/46/100/100"},
+    {"school": "武夷学院", "subject": "physics", "min_score": 511, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/47/100/100"},
+    {"school": "福建技术师范学院", "subject": "physics", "min_score": 508, "major": "普通类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/48/100/100"},
+    {"school": "福建商学院", "subject": "physics", "min_score": 507, "major": "普通类", "province": "福建", "type": "财经", "logo": "https://picsum.photos/id/49/100/100"},
+    {"school": "龙岩学院（闽台合作）", "subject": "physics", "min_score": 499, "major": "闽台合作", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/50/100/100"},
+    {"school": "宁德师范学院（闽台合作）", "subject": "physics", "min_score": 496, "major": "闽台合作", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/51/100/100"},
+    {"school": "武夷学院（闽台合作）", "subject": "physics", "min_score": 495, "major": "闽台合作", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/52/100/100"},
+    {"school": "福建商学院（闽台合作）", "subject": "physics", "min_score": 495, "major": "闽台合作", "province": "福建", "type": "财经", "logo": "https://picsum.photos/id/53/100/100"},
+    {"school": "福州大学至诚学院", "subject": "physics", "min_score": 491, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/54/100/100"},
+    {"school": "福建师范大学协和学院", "subject": "physics", "min_score": 489, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/55/100/100"},
+    {"school": "福建农林大学金山学院", "subject": "physics", "min_score": 485, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/56/100/100"},
+    {"school": "福州外语外贸学院", "subject": "physics", "min_score": 463, "major": "普通类", "province": "福建", "type": "财经", "logo": "https://picsum.photos/id/57/100/100"},
+    {"school": "福州理工学院", "subject": "physics", "min_score": 449, "major": "普通类", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/58/100/100"},
+    {"school": "福州工商学院", "subject": "physics", "min_score": 449, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/59/100/100"},
+    {"school": "阳光学院", "subject": "physics", "min_score": 447, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/60/100/100"},
+    {"school": "华侨大学（临床医学）", "subject": "physics", "min_score": 585, "major": "临床医学", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/61/100/100"},
+    {"school": "华侨大学", "subject": "physics", "min_score": 566, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/62/100/100"},
+    {"school": "集美大学", "subject": "physics", "min_score": 552, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/63/100/100"},
+    {"school": "莆田学院（临床及口腔）", "subject": "physics", "min_score": 548, "major": "临床及口腔", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/64/100/100"},
+    {"school": "厦门理工学院", "subject": "physics", "min_score": 543, "major": "普通类", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/65/100/100"},
+    {"school": "厦门理工学院（闽台合作）", "subject": "physics", "min_score": 534, "major": "闽台合作", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/66/100/100"},
+    {"school": "泉州师范学院（软件类）", "subject": "physics", "min_score": 532, "major": "软件类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/67/100/100"},
+    {"school": "闽南师范大学", "subject": "physics", "min_score": 530, "major": "普通类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/68/100/100"},
+    {"school": "泉州师范学院", "subject": "physics", "min_score": 524, "major": "普通类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/69/100/100"},
+    {"school": "厦门医学院", "subject": "physics", "min_score": 519, "major": "普通类", "province": "福建", "type": "医药", "logo": "https://picsum.photos/id/70/100/100"},
+    {"school": "闽南师范大学（闽台合作）", "subject": "physics", "min_score": 519, "major": "闽台合作", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/71/100/100"},
+    {"school": "莆田学院", "subject": "physics", "min_score": 514, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/72/100/100"},
+    {"school": "三明学院", "subject": "physics", "min_score": 511, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/73/100/100"},
+    {"school": "莆田学院（闽台合作）", "subject": "physics", "min_score": 507, "major": "闽台合作", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/74/100/100"},
+    {"school": "泉州师范学院（闽台合作）", "subject": "physics", "min_score": 499, "major": "闽台合作", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/75/100/100"},
+    {"school": "厦门大学嘉庚学院", "subject": "physics", "min_score": 496, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/76/100/100"},
+    {"school": "三明学院（闽台合作）", "subject": "physics", "min_score": 491, "major": "闽台合作", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/77/100/100"},
+    {"school": "集美大学诚毅学院", "subject": "physics", "min_score": 489, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/78/100/100"},
+    {"school": "仰恩大学", "subject": "physics", "min_score": 481, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/79/100/100"},
+    {"school": "泉州信息工程学院", "subject": "physics", "min_score": 469, "major": "普通类", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/80/100/100"},
+    {"school": "闽南科技学院", "subject": "physics", "min_score": 469, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/81/100/100"},
+    {"school": "泉州职业技术大学", "subject": "physics", "min_score": 459, "major": "普通类", "province": "福建", "type": "职业技术", "logo": "https://picsum.photos/id/82/100/100"},
+    {"school": "厦门华厦学院", "subject": "physics", "min_score": 457, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/83/100/100"},
+    {"school": "闽南理工学院", "subject": "physics", "min_score": 455, "major": "普通类", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/84/100/100"},
+    {"school": "厦门工学院", "subject": "physics", "min_score": 450, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/85/100/100"},
+    
+    // 历史科目组
+    {"school": "厦门大学", "subject": "history", "min_score": 610, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/86/100/100"},
+    {"school": "厦门大学（面向厦门）", "subject": "history", "min_score": 620, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/87/100/100"},
+    {"school": "厦门大学（面向漳州）", "subject": "history", "min_score": 600, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/88/100/100"},
+    {"school": "厦门大学（马来西亚分校）", "subject": "history", "min_score": 575, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/89/100/100"},
+    {"school": "福建师范大学", "subject": "history", "min_score": 565, "major": "普通类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/90/100/100"},
+    {"school": "福建农林大学", "subject": "history", "min_score": 550, "major": "普通类", "province": "福建", "type": "农林", "logo": "https://picsum.photos/id/91/100/100"},
+    {"school": "福建农林大学（闽台合作）", "subject": "history", "min_score": 548, "major": "闽台合作", "province": "福建", "type": "农林", "logo": "https://picsum.photos/id/92/100/100"},
+    {"school": "福建理工大学", "subject": "history", "min_score": 540, "major": "普通类", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/93/100/100"},
+    {"school": "闽江学院（新华都商学院）", "subject": "history", "min_score": 535, "major": "新华都商学院", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/94/100/100"},
+    {"school": "福建医科大学", "subject": "history", "min_score": 535, "major": "普通类", "province": "福建", "type": "医药", "logo": "https://picsum.photos/id/95/100/100"},
+    {"school": "福建理工大学（闽台合作）", "subject": "history", "min_score": 533, "major": "闽台合作", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/96/100/100"},
+    {"school": "福建中医药大学", "subject": "history", "min_score": 528, "major": "普通类", "province": "福建", "type": "医药", "logo": "https://picsum.photos/id/97/100/100"},
+    {"school": "闽江学院", "subject": "history", "min_score": 526, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/98/100/100"},
+    {"school": "福建警察学院", "subject": "history", "min_score": 525, "major": "普通类", "province": "福建", "type": "政法", "logo": "https://picsum.photos/id/99/100/100"},
+    {"school": "福建江夏学院", "subject": "history", "min_score": 523, "major": "普通类", "province": "福建", "type": "财经", "logo": "https://picsum.photos/id/100/100"},
+    {"school": "福建师范大学（闽台合作）", "subject": "history", "min_score": 522, "major": "闽台合作", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/101/100/100"},
+    {"school": "闽江学院（闽台合作）", "subject": "history", "min_score": 513, "major": "闽台合作", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/102/100/100"},
+    {"school": "福建中医药大学（闽台合作）", "subject": "history", "min_score": 513, "major": "闽台合作", "province": "福建", "type": "医药", "logo": "https://picsum.photos/id/103/100/100"},
+    {"school": "福建江夏学院（闽台合作）", "subject": "history", "min_score": 512, "major": "闽台合作", "province": "福建", "type": "财经", "logo": "https://picsum.photos/id/104/100/100"},
+    {"school": "宁德师范学院", "subject": "history", "min_score": 510, "major": "普通类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/105/100/100"},
+    {"school": "龙岩学院", "subject": "history", "min_score": 510, "major": "普通类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/106/100/100"},
+    {"school": "武夷学院", "subject": "history", "min_score": 507, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/107/100/100"},
+    {"school": "福建技术师范学院", "subject": "history", "min_score": 504, "major": "普通类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/108/100/100"},
+    {"school": "福建商学院", "subject": "history", "min_score": 503, "major": "普通类", "province": "福建", "type": "财经", "logo": "https://picsum.photos/id/109/100/100"},
+    {"school": "龙岩学院（闽台合作）", "subject": "history", "min_score": 495, "major": "闽台合作", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/110/100/100"},
+    {"school": "宁德师范学院（闽台合作）", "subject": "history", "min_score": 492, "major": "闽台合作", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/111/100/100"},
+    {"school": "武夷学院（闽台合作）", "subject": "history", "min_score": 491, "major": "闽台合作", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/112/100/100"},
+    {"school": "福建商学院（闽台合作）", "subject": "history", "min_score": 491, "major": "闽台合作", "province": "福建", "type": "财经", "logo": "https://picsum.photos/id/113/100/100"},
+    {"school": "福州大学至诚学院", "subject": "history", "min_score": 487, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/114/100/100"},
+    {"school": "福建师范大学协和学院", "subject": "history", "min_score": 485, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/115/100/100"},
+    {"school": "福建农林大学金山学院", "subject": "history", "min_score": 481, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/116/100/100"},
+    {"school": "福州外语外贸学院", "subject": "history", "min_score": 459, "major": "普通类", "province": "福建", "type": "财经", "logo": "https://picsum.photos/id/117/100/100"},
+    {"school": "福州理工学院", "subject": "history", "min_score": 445, "major": "普通类", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/118/100/100"},
+{"school": "福州工商学院", "subject": "history", "min_score": 445, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/119/100/100"},
+{"school": "阳光学院", "subject": "history", "min_score": 443, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/120/100/100"},
+{"school": "华侨大学", "subject": "history", "min_score": 560, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/121/100/100"},
+{"school": "集美大学", "subject": "history", "min_score": 545, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/122/100/100"},
+{"school": "莆田学院（临床及口腔）", "subject": "history", "min_score": 541, "major": "临床及口腔", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/123/100/100"},
+{"school": "厦门理工学院", "subject": "history", "min_score": 536, "major": "普通类", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/124/100/100"},
+{"school": "厦门理工学院（闽台合作）", "subject": "history", "min_score": 527, "major": "闽台合作", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/125/100/100"},
+{"school": "泉州师范学院（软件类）", "subject": "history", "min_score": 525, "major": "软件类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/126/100/100"},
+{"school": "闽南师范大学", "subject": "history", "min_score": 523, "major": "普通类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/127/100/100"},
+{"school": "泉州师范学院", "subject": "history", "min_score": 517, "major": "普通类", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/128/100/100"},
+{"school": "厦门医学院", "subject": "history", "min_score": 512, "major": "普通类", "province": "福建", "type": "医药", "logo": "https://picsum.photos/id/129/100/100"},
+{"school": "闽南师范大学（闽台合作）", "subject": "history", "min_score": 512, "major": "闽台合作", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/130/100/100"},
+{"school": "莆田学院", "subject": "history", "min_score": 507, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/131/100/100"},
+{"school": "三明学院", "subject": "history", "min_score": 504, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/132/100/100"},
+{"school": "莆田学院（闽台合作）", "subject": "history", "min_score": 500, "major": "闽台合作", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/133/100/100"},
+{"school": "泉州师范学院（闽台合作）", "subject": "history", "min_score": 492, "major": "闽台合作", "province": "福建", "type": "师范", "logo": "https://picsum.photos/id/134/100/100"},
+{"school": "厦门大学嘉庚学院", "subject": "history", "min_score": 490, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/135/100/100"},
+{"school": "三明学院（闽台合作）", "subject": "history", "min_score": 486, "major": "闽台合作", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/136/100/100"},
+{"school": "集美大学诚毅学院", "subject": "history", "min_score": 484, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/137/100/100"},
+{"school": "仰恩大学", "subject": "history", "min_score": 476, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/138/100/100"},
+{"school": "泉州信息工程学院", "subject": "history", "min_score": 464, "major": "普通类", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/139/100/100"},
+{"school": "闽南科技学院", "subject": "history", "min_score": 464, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/140/100/100"},
+{"school": "泉州职业技术大学", "subject": "history", "min_score": 454, "major": "普通类", "province": "福建", "type": "职业技术", "logo": "https://picsum.photos/id/141/100/100"},
+{"school": "厦门华厦学院", "subject": "history", "min_score": 452, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/142/100/100"},
+{"school": "闽南理工学院", "subject": "history", "min_score": 450, "major": "普通类", "province": "福建", "type": "理工", "logo": "https://picsum.photos/id/143/100/100"},
+{"school": "厦门工学院", "subject": "history", "min_score": 445, "major": "普通类", "province": "福建", "type": "综合", "logo": "https://picsum.photos/id/144/100/100"}
+];
+
+        // 页面加载时执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 按钮点击事件处理
+            document.getElementById('submit-btn').addEventListener('click', function() {
+                // 获取用户输入
+                const scoreInput = document.getElementById('score');
+                const score = parseInt(scoreInput.value);
+                const subject = document.getElementById('subject').value;
+                
+                // 验证输入
+                if (isNaN(score) || score < 0 || score > 750) {
+                    alert('请输入有效的分数（0-750之间）');
+                    scoreInput.focus();
+                    return;
+                }
+                
+                // 显示结果区域
+                const resultSection = document.getElementById('result-section');
+                resultSection.classList.remove('hidden');
+                
+                // 更新基本信息
+                const subjectText = subject === 'history' ? '历史科目组' : '物理科目组';
+                document.getElementById('result-score').textContent = score;
+                document.getElementById('result-subject').textContent = subjectText;
+                
+                // 计算排名
+                const rank = getRank(score, subject);
+                document.getElementById('result-rank').textContent = rank;
+                
+                // 推荐院校
+                recommendSchools(score, subject);
+                
+                // 平滑滚动到结果区域
+                resultSection.scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            // 返回按钮
+            document.getElementById('back-btn').addEventListener('click', function() {
+                const resultSection = document.getElementById('result-section');
+                resultSection.classList.add('hidden');
+                
+                // 平滑滚动到查询区域
+                document.getElementById('calculator').scrollIntoView({ behavior: 'smooth' });
+            });
+
+            // 导航栏滚动效果
+            window.addEventListener('scroll', function() {
+                const nav = document.querySelector('nav');
+                if (window.scrollY > 50) {
+                    nav.classList.add('py-2');
+                    nav.classList.remove('py-3');
+                } else {
+                    nav.classList.add('py-3');
+                    nav.classList.remove('py-2');
+                }
+            });
+
+            // 平滑滚动
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+
+        // 获取排名
+        function getRank(score, subject) {
+            const section = scoreSection2025[subject];
+            if (!section) return "科类选择错误";
+            
+            // 找到小于等于当前分数的最大分数对应的排名
+            let ranks = Object.keys(section)
+                .map(Number)
+                .filter(s => s <= score)
+                .sort((a, b) => b - a);
+            
+            return ranks.length > 0 ? section[ranks[0]].toLocaleString() : "无对应分数段数据";
+        }
+
+        // 推荐院校
+        function recommendSchools(score, subject) {
+            const schools = document.getElementById('recommended-schools');
+            schools.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fa fa-spinner fa-spin text-2xl mb-3"></i><p>正在为您计算推荐院校...</p></div>';
+            
+            // 筛选符合条件的学校
+            const filteredSchools = schoolData2024
+                .filter(school => school.subject === subject && school.min_score <= score)
+                .sort((a, b) => b.min_score - a.min_score);
+            
+            // 延迟显示结果，模拟加载过程
+            setTimeout(() => {
+                if (filteredSchools.length === 0) {
+                    schools.innerHTML = `
+                        <div class="bg-white rounded-lg p-6 shadow-md">
+                            <div class="flex items-center justify-center flex-col text-center">
+                                <i class="fa fa-info-circle text-primary text-4xl mb-4"></i>
+                                <h4 class="text-xl font-semibold text-neutral mb-2">没有找到匹配的院校</h4>
+                                <p class="text-gray-600">根据您提供的分数，暂时没有找到合适的推荐院校。建议您考虑其他志愿选择或联系当地招生办公室获取更多信息。</p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                schools.innerHTML = '';
+                
+                // 分类显示学校（冲刺、稳妥、保底）
+                const highRisk = filteredSchools.filter(school => school.min_score > score - 5);
+                const mediumRisk = filteredSchools.filter(school => school.min_score <= score - 5 && school.min_score > score - 15);
+                const lowRisk = filteredSchools.filter(school => school.min_score <= score - 15);
+                
+                [
+                    { type: '冲刺院校', schools: highRisk, color: 'bg-red-50', icon: 'fa-rocket' },
+                    { type: '稳妥院校', schools: mediumRisk, color: 'bg-blue-50', icon: 'fa-shield' },
+                    { type: '保底院校', schools: lowRisk, color: 'bg-green-50', icon: 'fa-umbrella' }
+                ].forEach(category => {
+                    if (category.schools.length > 0) {
+                        schools.innerHTML += `
+                            <div class="mb-6">
+                                <h4 class="text-lg font-semibold text-neutral mb-3 flex items-center">
+                                    <i class="fa ${category.icon} text-primary mr-2"></i> ${category.type} (${category.schools.length}所)
+                                </h4>
+                                <div class="${category.color} rounded-lg p-4 space-y-3">
+                                    ${category.schools.map(school => `
+                                        <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center">
+                                            <div class="flex-shrink-0 mb-3 md:mb-0 md:mr-4">
+                                                <img src="${school.logo}" alt="${school.school}校徽" class="w-16 h-16 object-contain rounded-full border-2 border-gray-200">
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="flex flex-col md:flex-row md:items-center justify-between">
+                                                    <h5 class="text-lg font-bold text-neutral">${school.school}</h5>
+                                                    <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">${school.type}</span>
+                                                </div>
+                                                <div class="flex flex-wrap gap-2 mt-2">
+                                                    <span class="text-sm text-gray-600 flex items-center">
+                                                        <i class="fa fa-map-marker text-gray-400 mr-1"></i> ${school.province}
+                                                    </span>
+                                                    <span class="text-sm text-gray-600 flex items-center">
+                                                        <i class="fa fa-graduation-cap text-gray-400 mr-1"></i> ${school.major}
+                                                    </span>
+                                                    <span class="text-sm text-gray-600 flex items-center">
+                                                        <i class="fa fa-line-chart text-gray-400 mr-1"></i> 2024年最低分: ${school.min_score}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3 md:mt-0 md:ml-4">
+                                                <span class="inline-block px-3 py-1 rounded-full ${getRiskClass(school.min_score, score)} text-xs font-medium">
+                                                    ${getRiskText(school.min_score, score)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }, 1000);
+        }
+        
+        // 获取风险类别文本
+        function getRiskText(minScore, score) {
+            if (minScore > score - 5) return '冲刺';
+            if (minScore <= score - 5 && minScore > score - 15) return '稳妥';
+            return '保底';
+        }
+        
+        // 获取风险类别样式
+        function getRiskClass(minScore, score) {
+            if (minScore > score - 5) return 'bg-red-100 text-red-800';
+            if (minScore <= score - 5 && minScore > score - 15) return 'bg-blue-100 text-blue-800';
+            return 'bg-green-100 text-green-800';
+        }
+    </script>
+</body>
+</html>    
